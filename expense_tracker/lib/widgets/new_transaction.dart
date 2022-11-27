@@ -1,12 +1,18 @@
 import 'package:flutter/material.dart';
-import './user_transaction.dart';
+import 'package:intl/intl.dart';
 
-class NewTransaction extends StatelessWidget {
+class NewTransaction extends StatefulWidget {
   final Function addTx;
+  NewTransaction(this.addTx);
+
+  @override
+  _NewTransactionState createState() => _NewTransactionState();
+}
+
+class _NewTransactionState extends State<NewTransaction> {
   final titleController = TextEditingController();
   final amountController = TextEditingController();
-
-  NewTransaction(this.addTx);
+  DateTime _selectedDate = DateTime.now();
 
   void submitData() {
     final enteredTitle = titleController.text;
@@ -16,7 +22,25 @@ class NewTransaction extends StatelessWidget {
       return;
     }
 
-    addTx(enteredTitle, enteredAmount);
+    widget.addTx(enteredTitle, enteredAmount, _selectedDate);
+
+    Navigator.of(context).pop();
+  }
+
+  void _presentDatePicker() {
+    showDatePicker(
+      context: context,
+      initialDate: DateTime.now(),
+      firstDate: DateTime(2022),
+      lastDate: DateTime.now(),
+    ).then((pickedDate) {
+      if (pickedDate == null) {
+        return;
+      }
+      setState(() {
+        _selectedDate = pickedDate;
+      });
+    });
   }
 
   @override
@@ -44,8 +68,24 @@ class NewTransaction extends StatelessWidget {
                   keyboardType: TextInputType.number,
                   onSubmitted: (_) => submitData(),
                 ),
+                Container(
+                  height: 70,
+                  child: Row(children: <Widget>[
+                    Expanded(
+                      child: Text(_selectedDate == null
+                          ? 'No Date Choosen'
+                          : 'Picked Date: ${DateFormat.yMd().format(_selectedDate)}'),
+                    ),
+                    TextButton(
+                        onPressed: _presentDatePicker,
+                        child: const Text('Choose a date',
+                            style: TextStyle(fontWeight: FontWeight.bold)))
+                  ]),
+                ),
                 ElevatedButton(
-                    child: Text('Add Transaction'), onPressed: submitData)
+                    child: Text('Add Transaction',
+                        style: TextStyle(fontWeight: FontWeight.bold)),
+                    onPressed: submitData)
               ],
             )));
   }
